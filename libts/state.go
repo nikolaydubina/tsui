@@ -88,7 +88,7 @@ func NewIPNStateFromString(v string) (ipn.State, error) {
 	case "Running":
 		return ipn.Running, nil
 	default:
-		return ipn.NoState, errors.New("unknown ipn.State(%s)")
+		return ipn.NoState, errors.New("unknown ipn.State(" + v + ")")
 	}
 }
 
