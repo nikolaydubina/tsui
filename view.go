@@ -11,30 +11,30 @@ import (
 )
 
 // Format the status button in the header bar.
-func renderStatusButton(backendState string, isUsingExitNode bool) string {
+func renderStatusButton(backendState ipn.State, isUsingExitNode bool) string {
 	buttonStyle := lipgloss.NewStyle().
 		Padding(0, 1)
 
 	switch backendState {
-	case ipn.NeedsLogin.String():
+	case ipn.NeedsLogin:
 		return buttonStyle.
 			Background(ui.Yellow).
 			Foreground(ui.Black).
 			Render("Needs Login")
 
-	case ipn.NeedsMachineAuth.String():
+	case ipn.NeedsMachineAuth:
 		return buttonStyle.
 			Background(ui.Yellow).
 			Foreground(ui.Black).
 			Render("Needs Machine Auth")
 
-	case ipn.Starting.String():
+	case ipn.Starting:
 		return buttonStyle.
 			Background(ui.Blue).
 			Foreground(ui.White).
 			Render("Starting...")
 
-	case ipn.Running.String():
+	case ipn.Running:
 		text := "Connected"
 		if isUsingExitNode {
 			text += " - Exit Node"
@@ -45,13 +45,13 @@ func renderStatusButton(backendState string, isUsingExitNode bool) string {
 			Foreground(ui.Black).
 			Render(text)
 
-	case ipn.Stopped.String():
+	case ipn.Stopped:
 		return buttonStyle.
 			Background(ui.Red).
 			Foreground(ui.Black).
 			Render("Not Connected")
 
-	case ipn.NoState.String():
+	case ipn.NoState:
 		return buttonStyle.
 			Background(ui.Blue).
 			Foreground(ui.White).
@@ -93,7 +93,7 @@ func renderHeader(m *model) string {
 		var status strings.Builder
 		status.WriteString("Status: ")
 		status.WriteString(renderStatusButton(m.state.BackendState, m.state.CurrentExitNode != nil))
-		if m.state.BackendState == ipn.Running.String() {
+		if m.state.BackendState == ipn.Running {
 			status.WriteString(lipgloss.NewStyle().
 				Faint(true).
 				PaddingLeft(1).
@@ -154,7 +154,7 @@ func renderMiddleBanner(m *model, height int, text string) string {
 func renderStatusBar(m *model) string {
 	var text string
 
-	if m.statusText == "" && m.canWrite && m.state.BackendState == ipn.Running.String() {
+	if m.statusText == "" && m.canWrite && m.state.BackendState == ipn.Running {
 		// If there's no other status, we're running, and we have write access, show up/down.
 		text = lipgloss.NewStyle().
 			Faint(true).
@@ -242,16 +242,16 @@ func (m model) View() string {
 		Render(m.state.AuthURL)
 
 	switch m.state.BackendState {
-	case ipn.Running.String():
+	case ipn.Running:
 		middle = lipgloss.NewStyle().
 			Height(middleHeight).
 			Render(m.menu.Render(middleHeight))
 
-	case ipn.NeedsMachineAuth.String():
+	case ipn.NeedsMachineAuth:
 		// TODO: Figure out what this state actually is so we can be helpful to the user.
 		middle = renderMiddleBanner(&m, middleHeight, "Tailscale status is NeedsMachineAuth.")
 
-	case ipn.NeedsLogin.String():
+	case ipn.NeedsLogin:
 		lines := []string{
 			lipgloss.NewStyle().
 				Bold(true).
@@ -280,17 +280,17 @@ func (m model) View() string {
 
 		middle = renderMiddleBanner(&m, middleHeight, strings.Join(lines, "\n"))
 
-	case ipn.Stopped.String():
+	case ipn.Stopped:
 		middle = renderMiddleBanner(&m, middleHeight, strings.Join([]string{
 			`The Tailscale daemon isn't running.`,
 			``,
 			`Press . to bring Tailscale up.`,
 		}, "\n"))
 
-	case ipn.NoState.String():
+	case ipn.NoState:
 		middle = renderMiddleBanner(&m, middleHeight, ui.PoggersAnimationFrame(m.animationT))
 
-	case ipn.Starting.String():
+	case ipn.Starting:
 		if m.state.AuthURL == "" {
 			middle = renderMiddleBanner(&m, middleHeight, ui.PoggersAnimationFrame(m.animationT))
 		} else {

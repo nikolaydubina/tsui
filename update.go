@@ -137,7 +137,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case ".":
 			switch m.state.BackendState {
 			// If running, stop Tailscale.
-			case ipn.Running.String():
+			case ipn.Running:
 				return m, func() tea.Msg {
 					err := libts.Down(ctx)
 					if err != nil {
@@ -147,7 +147,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 			// If stopped, start Tailscale.
-			case ipn.Stopped.String():
+			case ipn.Stopped:
 				return m, func() tea.Msg {
 					err := libts.Up(ctx)
 					if err != nil {
@@ -157,7 +157,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 			// If we need to login...
-			case ipn.NeedsLogin.String():
+			case ipn.NeedsLogin:
 				if m.state.AuthURL == "" {
 					// If we haven't started the login flow yet, do so.
 					// Tailscale will open their browser for us.
@@ -179,7 +179,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 
-			case ipn.Starting.String():
+			case ipn.Starting:
 				// If we have an AuthURL in the Starting state, that means the user is reauthenticating
 				// and we also need to open the browser!
 				// (But not if we're root on Linux.)

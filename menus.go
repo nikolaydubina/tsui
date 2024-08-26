@@ -17,7 +17,7 @@ import (
 
 // Update all of the menu UIs from the current state.
 func (m *model) updateMenus() {
-	if m.state.BackendState == ipn.Running.String() {
+	if m.state.BackendState == ipn.Running {
 		// Update the device info submenu.
 		{
 			submenuItems := []ui.SubmenuItem{

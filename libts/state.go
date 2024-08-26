@@ -2,6 +2,8 @@ package libts
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"slices"
 	"strings"
 
@@ -17,9 +19,8 @@ type State struct {
 	Prefs *ipn.Prefs
 
 	// Current Tailscale backend state.
-	//  "NoState", "NeedsLogin", "NeedsMachineAuth", "Stopped",
-	//  "Starting", "Running".
-	BackendState string
+	BackendState ipn.State
+
 	// Current Tailscale version. This is a shortened version string like "1.70.0".
 	TSVersion string
 
@@ -70,6 +71,27 @@ func getSortedExitNodes(tsStatus *ipnstate.Status) []*ipnstate.PeerStatus {
 	return exitNodes
 }
 
+func NewIPNStateFromString(v string) (ipn.State, error) {
+	switch v {
+	case "NoState":
+		return ipn.NoState, nil
+	case "InUseOtherUser":
+		return ipn.InUseOtherUser, nil
+	case "NeedsLogin":
+		return ipn.NeedsLogin, nil
+	case "NeedsMachineAuth":
+		return ipn.NeedsMachineAuth, nil
+	case "Stopped":
+		return ipn.Stopped, nil
+	case "Starting":
+		return ipn.Starting, nil
+	case "Running":
+		return ipn.Running, nil
+	default:
+		return ipn.NoState, errors.New("unknown ipn.State(%s)")
+	}
+}
+
 // Make a current State by making necessary Tailscale API calls.
 func GetState(ctx context.Context) (State, error) {
 	status, err := Status(ctx)
@@ -87,10 +109,15 @@ func GetState(ctx context.Context) (State, error) {
 		return State{}, err
 	}
 
+	backendState, err := NewIPNStateFromString(status.BackendState)
+	if err != nil {
+		return State{}, fmt.Errorf("cannot get status from state: %w", err)
+	}
+
 	state := State{
 		Prefs:           prefs,
 		AuthURL:         status.AuthURL,
-		BackendState:    status.BackendState,
+		BackendState:    backendState,
 		TSVersion:       status.Version,
 		Self:            status.Self,
 		SortedExitNodes: getSortedExitNodes(status),
@@ -114,7 +141,7 @@ func GetState(ctx context.Context) (State, error) {
 	if lock.Enabled && lock.NodeKey != nil && !lock.PublicKey.IsZero() {
 		state.LockKey = &lock.PublicKey
 
-		if !lock.NodeKeySigned && state.BackendState == ipn.Running.String() {
+		if !lock.NodeKeySigned && state.BackendState == ipn.Running {
 			state.IsLockedOut = true
 		}
 	}
