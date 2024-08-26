@@ -2,7 +2,6 @@ package libts
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -92,7 +91,7 @@ func NewIPNStateFromString(v string) (ipn.State, error) {
 	case "Running":
 		return ipn.Running, nil
 	default:
-		return ipn.NoState, errors.New("unknown ipn.State(" + v + ")")
+		return ipn.NoState, fmt.Errorf("unknown ipn state: %s", v)
 	}
 }
 
