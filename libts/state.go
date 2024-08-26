@@ -71,6 +71,10 @@ func getSortedExitNodes(tsStatus *ipnstate.Status) []*ipnstate.PeerStatus {
 	return exitNodes
 }
 
+// Create an ipn.State from the string representation.
+//
+// This string representation comes from Tailscale's API and, because Go does not have
+// proper enums, this is the best way to convert it back to a "typed" representation.
 func NewIPNStateFromString(v string) (ipn.State, error) {
 	switch v {
 	case "NoState":
